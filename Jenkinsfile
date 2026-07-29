@@ -1,3 +1,6 @@
+cd ~/aws-cloudformation-practise
+
+cat > Jenkinsfile << 'EOF'
 pipeline {
     agent any
     
@@ -47,3 +50,4 @@ pipeline {
         }
     }
 }
+EOF
