@@ -33,16 +33,16 @@ pipeline {
                     
                     aws cloudformation deploy \
                         --template-file cloudformationTempletes/ec2.yaml \
-                        --stack-name ${STACK_NAME} \
+                        --stack-name dev-ec2-stack \
                         --parameter-overrides \
-                            EnvironmentName=${ENVIRONMENT} \
-                            KeyName=${KEY_NAME} \
+                            EnvironmentName=dev \
+                            KeyName=jenkins-ec2 \
                             AMIId=$AMI_ID \
-                        --region ${AWS_REGION} \
+                        --region us-east-1 \
                         --capabilities CAPABILITY_IAM \
                         --no-fail-on-empty-changeset
                     
-                    echo "✅ Stack deployed successfully!"
+                    echo "Stack deployed successfully!"
                 '''
             }
         }
