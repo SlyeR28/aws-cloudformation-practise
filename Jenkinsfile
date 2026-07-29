@@ -5,7 +5,7 @@ pipeline {
         AWS_REGION = 'us-east-1'
         ENVIRONMENT = 'dev'
         STACK_NAME = 'dev-ec2-stack'
-        KEY_NAME = 'my-practice-key'       # Change this to your key name
+        KEY_NAME = 'jenkins-ec2'       
     }
     
     stages {
