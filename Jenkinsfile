@@ -224,7 +224,7 @@ pipeline {
 }
 EOF
 
-# Verify files were created
+
 echo "=========================================="
 echo "Checking created files:"
 echo "=========================================="
