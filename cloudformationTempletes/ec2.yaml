@@ -17,9 +17,10 @@ Parameters:
     Description: EC2 instance type
 
   KeyName:
-    Type: AWS::EC2::KeyPair::KeyName
-    # ↑ Must be an existing SSH key pair
-    Description: Name of an existing EC2 KeyPair
+    Type: String
+    Default: ""
+    # ↑ Optional key pair name for SSH access
+    Description: Name of an existing EC2 KeyPair (leave blank to skip SSH access)
 
   AMIId:
     Type: AWS::EC2::Image::Id
@@ -41,6 +42,9 @@ Parameters:
     # ↑ Allow SSH from anywhere (for learning)
     # ⚠️ For production, restrict to your IP only!
     Description: IP range for SSH access
+
+Conditions:
+  HasKeyPair: !Not [!Equals [!Ref KeyName, ""]]
 
 Resources:
   # ↓ Resources = What we're actually creating
@@ -76,8 +80,8 @@ Resources:
       # ↑ Which operating system to install
       InstanceType: !Ref InstanceType
       # ↑ How powerful the server should be
-      KeyName: !Ref KeyName
-      # ↑ Which SSH key to use for access
+      KeyName: !If [HasKeyPair, !Ref KeyName, !Ref 'AWS::NoValue']
+      # ↑ Only attach an SSH key when one is supplied
       SecurityGroupIds:
         - !Ref InstanceSecurityGroup
         # ↑ Attach the firewall we created

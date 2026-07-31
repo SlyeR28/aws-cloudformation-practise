@@ -66,8 +66,8 @@ pipeline {
                     echo "📂 Current directory: $(pwd)"
                     echo "Files in current directory:"
                     ls -la
-                    echo "Files in cloudformation directory:"
-                    ls -la cloudformation/ || echo "cloudformation directory not found"
+                    echo "Files in template directory:"
+                    ls -la ${TEMPLATE_FILE%/*} || echo "Template directory not found"
                 '''
             }
         }
