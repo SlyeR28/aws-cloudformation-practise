@@ -231,3 +231,5 @@ echo "=========================================="
 ls -la
 echo ""
 ls -la cloudformation/
+
+EOF
