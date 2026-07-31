@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_DEFAULT_REGION = "us-east-1"
+        AWS_DEFAULT_REGION = "ap-south-1"
         STACK_NAME = "dev-ec2-stack"
         ENVIRONMENT = "dev"
         KEY_NAME = "jenkins-ec2"
