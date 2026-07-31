@@ -1,11 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: Create EC2 Instance
+Description: >
+  CloudFormation template to create an EC2 instance.
 
 Parameters:
 
   InstanceType:
     Type: String
+    Description: EC2 Instance Type
     Default: t2.micro
     AllowedValues:
       - t2.micro
@@ -14,23 +16,19 @@ Parameters:
 
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
-    Description: Existing EC2 Key Pair
+    Description: Name of an existing EC2 Key Pair
 
   AMIId:
     Type: AWS::EC2::Image::Id
-    Description: Latest Amazon Linux 2 AMI
+    Description: Amazon Machine Image (AMI) ID
 
 Resources:
 
   MyEC2Instance:
     Type: AWS::EC2::Instance
-
     Properties:
-
       ImageId: !Ref AMIId
-
       InstanceType: !Ref InstanceType
-
       KeyName: !Ref KeyName
 
       Tags:
@@ -44,5 +42,13 @@ Outputs:
     Value: !Ref MyEC2Instance
 
   PublicIP:
-    Description: Public IP
+    Description: Public IP Address
     Value: !GetAtt MyEC2Instance.PublicIp
+
+  PublicDNS:
+    Description: Public DNS Name
+    Value: !GetAtt MyEC2Instance.PublicDnsName
+
+  AvailabilityZone:
+    Description: Availability Zone
+    Value: !GetAtt MyEC2Instance.AvailabilityZone
