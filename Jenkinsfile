@@ -52,7 +52,6 @@ pipeline {
                     sh '''
                         echo "🔐 Validating AWS credentials..."
                         aws sts get-caller-identity
-                        // ↑ Gets who you're logged in as
                         echo "✅ AWS credentials validated successfully"
                     '''
                 }
@@ -82,7 +81,6 @@ pipeline {
                     ]
                 ]) {
                     script {
-                        // ↓ Find the newest Amazon Linux image
                         env.AMI_ID = sh(
                             script: '''
                                 aws ec2 describe-images \
@@ -118,7 +116,6 @@ pipeline {
                         ls -la ${TEMPLATE_FILE} || echo "Template not found!"
                         aws cloudformation validate-template \
                         --template-body file://${TEMPLATE_FILE}
-                        // ↑ AWS checks if the template is valid
                         echo "✅ Template validation successful"
                     """
                 }
@@ -211,7 +208,7 @@ pipeline {
                             --capabilities CAPABILITY_IAM \
                             --no-fail-on-empty-changeset
                         """
-                        // ↑ Deploys the stack with parameters
+                    
                         
                         sh deployCmd
                         echo "✅ Stack deployment initiated successfully"
