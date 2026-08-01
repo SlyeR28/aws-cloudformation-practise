@@ -4,7 +4,7 @@ pipeline
         environment {
             AWS_DEFAULT_REGION = "ap-south-1"
             STACK_NAME = "jenkins-pipeline"
-            TEMPLATE_FILE = "cloudformationTemplates/my-s3-bucket.yaml"
+            TEMPLATE_FILE = "cloudformationTempletes/my-s3-bucket.yaml"
             BUCKET_NAME =  "rishabh-dev-bucket-450219185330"
             ENVIRONMENT = "dev"
         }
