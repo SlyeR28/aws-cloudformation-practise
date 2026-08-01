@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 # ↑ Version of CloudFormation (like API version)
 
-Description: Create EC2 Instance with Security Group
+Description: Create EC2 Instance with Security Group - Ubuntu in Mumbai (ap-south-1)
 # ↑ Human-readable description of what this does
 
 Parameters:
@@ -24,7 +24,10 @@ Parameters:
   AMIId:
     Type: AWS::EC2::Image::Id
     # ↑ AMI = Amazon Machine Image (Operating System template)
-    Description: AMI ID for the EC2 instance
+    Description: AMI ID for the EC2 instance (Ubuntu in Mumbai)
+    Default: ami-0c2af51e265bd5e0e
+    # ↑ Ubuntu 22.04 LTS in Mumbai (ap-south-1) region
+    # Alternative Ubuntu 24.04 LTS: ami-09923e7fc8d31ddbc
 
   Environment:
     Type: String
@@ -73,7 +76,7 @@ Resources:
     # ↑ Creates the actual virtual server
     Properties:
       ImageId: !Ref AMIId
-      # ↑ Which operating system to install
+      # ↑ Which operating system to install (Ubuntu)
       InstanceType: !Ref InstanceType
       # ↑ How powerful the server should be
       KeyName: !Ref KeyName
@@ -87,26 +90,41 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           # ↑ This is like a startup script
-          yum update -y
-          # ↑ Update all system packages
-          yum install -y httpd
-          # ↑ Install Apache web server
-          systemctl start httpd
+          
+          # 🔄 UBUNTU SPECIFIC COMMANDS (not yum!)
+          apt-get update -y
+          # ↑ Update all system packages (apt-get for Ubuntu)
+          
+          apt-get install -y apache2
+          # ↑ Install Apache web server (called apache2 on Ubuntu)
+          
+          systemctl start apache2
           # ↑ Start the web server
-          systemctl enable httpd
+          
+          systemctl enable apache2
           # ↑ Make it start automatically on boot
+          
+          # Create a simple web page
           echo "<h1>Welcome to ${Environment} Environment</h1>" > /var/www/html/index.html
-          # ↑ Create a simple web page
-          echo "<p>Deployed via Jenkins Pipeline</p>" >> /var/www/html/index.html
+          echo "<p>Deployed via Jenkins Pipeline on Ubuntu</p>" >> /var/www/html/index.html
+          echo "<p>Region: Mumbai (ap-south-1)</p>" >> /var/www/html/index.html
+          echo "<p>Instance Type: ${InstanceType}</p>" >> /var/www/html/index.html
+          
+          # Optional: Install additional useful packages
+          apt-get install -y curl wget git vim
       
       Tags:
         # ↓ Labels to identify the instance
         - Key: Name
-          Value: !Sub "${Environment}-ec2-instance"
+          Value: !Sub "${Environment}-ubuntu-instance"
         - Key: Environment
           Value: !Ref Environment
         - Key: CreatedBy
           Value: Jenkins
+        - Key: OS
+          Value: Ubuntu-22.04
+        - Key: Region
+          Value: ap-south-1
 
 Outputs:
   # ↓ Information we want to see after creation
@@ -128,3 +146,12 @@ Outputs:
   SecurityGroupId:
     Description: Security Group ID
     Value: !Ref InstanceSecurityGroup
+
+  SSHCommand:
+    Description: SSH command to connect to Ubuntu instance
+    Value: !Sub "ssh -i ${KeyName}.pem ubuntu@${MyEC2Instance.PublicIp}"
+    # ⚠️ Note: Ubuntu uses 'ubuntu' user, NOT 'ec2-user'!
+
+  WebURL:
+    Description: Web server URL
+    Value: !Sub "http://${MyEC2Instance.PublicIp}"
