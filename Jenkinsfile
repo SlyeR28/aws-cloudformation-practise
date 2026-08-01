@@ -15,7 +15,7 @@ pipeline {
         ENVIRONMENT = "dev"
         // ↑ Environment (dev/staging/prod)
         
-        KEY_NAME = "jenkins-ec2-key"
+        KEY_NAME = "jenkins-ec2-key.pem"
         // ↑ Name of the SSH key pair
         
         TEMPLATE_FILE = "cloudformationTempletes/ec2.yaml"
