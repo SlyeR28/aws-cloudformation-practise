@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an S3 bucket with versioning and encryption
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Globally unique name for the S3 bucket
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+Resources:
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: CreatedBy
+          Value: Jenkins
+
+Outputs:
+  BucketName:
+    Description: Name of the created S3 bucket
+    Value: !Ref MyS3Bucket
+  BucketArn:
+    Description: ARN of the created S3 bucket
+    Value: !GetAtt MyS3Bucket.Arn
+  BucketRegionalDomainName:
+    Description: Regional domain name of the bucket
+    Value: !GetAtt MyS3Bucket.RegionalDomainName
+    

@@ -1,0 +1,135 @@
+pipeline
+    {
+        agent any
+        environment {
+            AWS_DEFAULT_REGION = "ap-south-1"
+            STACK_NAME = "jenkins-pipeline"
+            TEMPLATE_FILE = "cloudformationTemplates/my-s3-bucket.yaml"
+            BUCKET_NAME =  "rishabh-dev-bucket-450219185330"
+            ENVIRONMENT = "dev"
+        }
+        stages{
+            stage('Checkout Source'){
+                steps{
+                    echo 'Checking out code'
+                    checkout scm
+                }
+            }
+            stage('Validate Aws Credentials'){
+                steps{
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                    ]){
+                        sh '''
+                            echo "Validating AWS Credentials"
+                            aws sts get-caller-identity
+                            '''
+                    }
+                }
+            }
+            stage('Validate Template'){
+                steps{
+                     withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                    ]){
+                        sh """
+                            aws cloudformation validate-template --template-body file://${TEMPLATE_FILE} --region ${AWS_DEFAULT_REGION}
+                        """
+                    }
+                  
+                }
+            }
+
+            stage('Check if stack exists'){
+                steps{
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                    ]){
+                        script{
+                            def stackExists = sh(
+                                script: """
+                                aws cloudformation describe-stacks --stack-name ${STACK_NAME} --region ${AWS_DEFAULT_REGION} --query "Stacks[0].StackStatus" --output text 2>/dev/null || echo "NOT_FOUND"
+                                """,
+                                returnStdout: true
+                            
+                            ).trim()
+                            env.STACK_EXISTS = stackExists != "NOT_FOUND"
+                            echo "Stack exists: ${env.STACK_EXISTS}"
+                        }
+                    }
+                }
+            }
+
+                    stage('Delete Existing Stack (if any)') {
+            when { expression { env.STACK_EXISTS == "true" } }
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    sh """
+                        aws cloudformation delete-stack --stack-name ${STACK_NAME} --region ${AWS_DEFAULT_REGION}
+                        aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME} --region ${AWS_DEFAULT_REGION}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy S3 Bucket Stack') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    sh """
+                        aws cloudformation deploy \
+                        --template-file ${TEMPLATE_FILE} \
+                        --stack-name ${STACK_NAME} \
+                        --region ${AWS_DEFAULT_REGION} \
+                        --parameter-overrides \
+                            BucketName=${BUCKET_NAME} \
+                            Environment=${ENVIRONMENT} \
+                        --no-fail-on-empty-changeset
+                    """
+                }
+            }
+        }
+
+        stage('Wait for Stack Creation') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    sh """
+                        aws cloudformation wait stack-create-complete \
+                        --stack-name ${STACK_NAME} --region ${AWS_DEFAULT_REGION}
+                    """
+                }
+            }
+        }
+
+        stage('Get Stack Outputs') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+                ]) {
+                    sh """
+                        aws cloudformation describe-stacks \
+                        --stack-name ${STACK_NAME} \
+                        --region ${AWS_DEFAULT_REGION} \
+                        --query "Stacks[0].Outputs" \
+                        --output table
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ S3 bucket '${BUCKET_NAME}' created successfully!"
+        }
+        failure {
+            echo "❌ Deployment failed. Check CloudFormation console for stack: ${STACK_NAME}"
+        }
+    }
+}
+        
