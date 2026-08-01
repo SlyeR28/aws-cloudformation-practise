@@ -15,10 +15,10 @@ pipeline {
         ENVIRONMENT = "dev"
         // ↑ Environment (dev/staging/prod)
         
-        KEY_NAME = "jenkins-ec2-key"
+        KEY_NAME = "jenkins-ec2-key.pem"
         // ↑ Name of the SSH key pair (without .pem extension)
         
-        TEMPLATE_FILE = "cloudformationTempletes2.yaml"
+       TEMPLATE_FILE = "cloudformationTempletes/ec2.yaml"
         // ↑ Path to the CloudFormation template
         
         INSTANCE_TYPE = "t3.micro"
