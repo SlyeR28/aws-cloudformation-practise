@@ -18,7 +18,7 @@ pipeline {
         KEY_NAME = "jenkins-ec2-key"
         // ↑ Name of the SSH key pair (without .pem extension)
         
-        TEMPLATE_FILE = "cloudformationTemplates/ec2.yaml"
+        TEMPLATE_FILE = "cloudformationTempletes2.yaml"
         // ↑ Path to the CloudFormation template
         
         INSTANCE_TYPE = "t3.micro"
