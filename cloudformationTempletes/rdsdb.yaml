@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS CloudFormation template to create an RDS MySQL instance'
+
+Parameters:
+  DatabaseInstanceIdentifier:
+    Type: String
+    Default: 'mydbinstance'
+    Description: 'A unique identifier for your database instance.'
+  DbName:
+    Type: String
+    Default: 'mydb'
+    Description: 'The name of the first database to create.'
+  DbUser:
+    Type: String
+    Default: 'admin'
+    Description: 'The master username for the database.'
+  DbPass:
+    Type: String
+    NoEcho: true
+    Description: 'The master password for the database. (This will be hidden)'
+  DatabaseInstanceClass:
+    Type: String
+    Default: 'db.t3.micro'
+    Description: 'The instance type for the DB (e.g., db.t4g.micro, db.m6g.large).'
+  DatabaseAllocatedStorage:
+    Type: Number
+    Default: 20
+    Description: 'The size of the storage volume in GB.'
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'A list of private subnet IDs for the DB subnet group.'
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: 'A list of security group IDs to attach to the DB.'
+
+Resources:
+  MyDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: 'Subnet group for RDS instance'
+      SubnetIds: !Ref SubnetIds
+
+  MyDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !Ref DbName
+      Engine: 'mysql'
+      EngineVersion: '8.0' # You can change this to '5.7' or another version
+      MasterUsername: !Ref DbUser
+      MasterUserPassword: !Ref DbPass
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      AllocatedStorage: !Ref DatabaseAllocatedStorage
+      PubliclyAccessible: false # Important for security in a VPC
+      StorageType: gp2 # Could also be 'gp3'
+      BackupRetentionPeriod: 7 # Number of days to keep backups
+      PreferredBackupWindow: '01:00-02:00'
+      PreferredMaintenanceWindow: 'Sun:03:00-Sun:04:00'
+      VPCSecurityGroups: !Ref SecurityGroupIds
+      DBSubnetGroupName: !Ref MyDBSubnetGroup
+      Port: 3306
+
+Outputs:
+  DbHost:
+    Description: 'The connection endpoint for the RDS instance'
+    Value: !GetAtt MyDBInstance.Endpoint.Address
+    Export:
+      Name: !Sub "${AWS::StackName}-DbHost"
+  DbPort:
+    Description: 'The port on which the database accepts connections'
+    Value: 3306
+  DbName:
+    Description: 'Name of the database'
+    Value: !Ref DbName
